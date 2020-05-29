@@ -290,34 +290,37 @@ int SStarAPI_calcFrameSize(const uint8_t * data)
 
 // API-фрейм для передачи данных на UART удаленного модема с
 // управлением режимом передачи/подтверждения
-void SStarAPI_sendAPI10(SStarAPIFrame * frame, uint8_t frameID, uint16_t destination, uint8_t API10_options, const uint8_t * data, uint8_t size)
+void SStarAPI_sendAPI10(uint8_t frameID, uint16_t destination, uint8_t API10_options, const uint8_t * data, uint8_t size)
 {
-	SStarAPI10 * api = SStarAPI_toAPI10(frame);
+	SStarAPIFrame frame;
+	SStarAPI10 * api = SStarAPI_toAPI10(&frame);
 	memcpy(api->data,data,size);
 	api->frameID = frameID;
 	api->options = API10_options;
 	api->destLsb = lsb(destination);
 	api->destMsb = msb(destination);
-	SStarAPI_completeFrame(frame, size+5, SStarFrameType_API10);
-	uart_write(frame,size+5+4);
+	SStarAPI_completeFrame(&frame, size+5, SStarFrameType_API10);
+	uart_write(&frame,size+5+4);
 
+	//модуль не переваривает непрерывную передачу данных
 	{
 		int dely = 60000;
 		while (dely--);
 	}
 }
 
-// API-фрейм для передачи данных на UART удаленного модема с
+// API-фрейм для передачи данных на UART удаленного модема без
 // управлением режимом передачи/подтверждения
-void SStarAPI_sendAPI0F(SStarAPIFrame * frame, uint8_t frameID, uint16_t destination, const uint8_t * data, uint8_t size)
+void SStarAPI_sendAPI0F(uint8_t frameID, uint16_t destination, const uint8_t * data, uint8_t size)
 {
-	SStarAPI0F * api = SStarAPI_toAPI0F(frame);
+	SStarAPIFrame frame;
+	SStarAPI0F * api = SStarAPI_toAPI0F(&frame);
 	memcpy(api->data,data,size);
 	api->frameID = frameID;
 	api->destLsb = lsb(destination);
 	api->destMsb = msb(destination);
-	SStarAPI_completeFrame(frame, size+4, SStarFrameType_API0F);
-	uart_write(frame,size+4+4);
+	SStarAPI_completeFrame(&frame, size+4, SStarFrameType_API0F);
+	uart_write(&frame,size+4+4);
 
 	{
 		int dely = 60000;
@@ -325,18 +328,18 @@ void SStarAPI_sendAPI0F(SStarAPIFrame * frame, uint8_t frameID, uint16_t destina
 	}
 }
 
-void SStarAPI_sendAPI07_09(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize, SStarAPI07_09_options option)
+void SStarAPI_sendAPI07_09(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize, SStarAPI07_09_options option)
 {
-	SStarAPI07_09 * api = SStarAPI_toAPI07_09(frame);
-//	int size = strlen(at);
+	SStarAPIFrame frame;
+	SStarAPI07_09 * api = SStarAPI_toAPI07_09(&frame);
 	memcpy(api->ATcmd,at,2);
 	api->frameID = frameID;
 	if (atParamSize)
 	{
 		memcpy(api->data,atParam,atParamSize);
 	}
-	SStarAPI_completeFrame(frame, atParamSize+4, option);
-	uart_write(frame,atParamSize+4+4);
+	SStarAPI_completeFrame(&frame, atParamSize+4, option);
+	uart_write(&frame,atParamSize+4+4);
 
 	{
 		int dely = 60000;
@@ -346,30 +349,30 @@ void SStarAPI_sendAPI07_09(SStarAPIFrame * frame, uint8_t frameID, const char * 
 
 // API-фрейм с локальной AT-командой и немедленным применением
 // изменений без сохранения их в энергонезависимой памяти
-void SStarAPI_sendAPI07(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize)
+void SStarAPI_sendAPI07(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize)
 {
-	SStarAPI_sendAPI07_09(frame, frameID, at, atParam, atParamSize, SStarAPI07_09_option_NotWrite);
+	SStarAPI_sendAPI07_09(frameID, at, atParam, atParamSize, SStarAPI07_09_option_NotWrite);
 }
 
 // API-фрейм с локальной AT-командой и немедленным применением
 // изменений с сохранением их в энергонезависимой памяти
-void SStarAPI_sendAPI08(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize)
+void SStarAPI_sendAPI08(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize)
 {
-	SStarAPI_sendAPI07_09(frame, frameID, at, atParam, atParamSize, SStarAPI07_09_option_Rewrite);
+	SStarAPI_sendAPI07_09(frameID, at, atParam, atParamSize, SStarAPI07_09_option_Rewrite);
 }
 
 // API-фрейм с локальной AT-командой с помещением
 // измененного значения в очередь
-void SStarAPI_sendAPI09(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize)
+void SStarAPI_sendAPI09(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize)
 {
-	SStarAPI_sendAPI07_09(frame, frameID, at, atParam, atParamSize, SStarAPI07_09_option_Queued);
+	SStarAPI_sendAPI07_09(frameID, at, atParam, atParamSize, SStarAPI07_09_option_Queued);
 }
 
 // API-фрейм с AT-командой удаленному модему
-void SStarAPI_sendAPI17(SStarAPIFrame * frame, uint8_t frameID, uint16_t destination, uint8_t API17_options, const char * at, const uint8_t * atParam, uint8_t atParamSize)
+void SStarAPI_sendAPI17(uint8_t frameID, uint16_t destination, uint8_t API17_options, const char * at, const uint8_t * atParam, uint8_t atParamSize)
 {
-	SStarAPI17 * api = SStarAPI_toAPI17(frame);
-//	int size = strlen(at);
+	SStarAPIFrame frame;
+	SStarAPI17 * api = SStarAPI_toAPI17(&frame);
 	memcpy(api->ATcmd,at,2);
 	api->frameID = frameID;
 	if (atParamSize)
@@ -379,8 +382,8 @@ void SStarAPI_sendAPI17(SStarAPIFrame * frame, uint8_t frameID, uint16_t destina
 	api->options = API17_options;
 	api->destLsb = lsb(destination);
 	api->destMsb = msb(destination);
-	SStarAPI_completeFrame(frame, atParamSize+7, SStarFrameType_API17);
-	uart_write(frame,atParamSize+7+4);
+	SStarAPI_completeFrame(&frame, atParamSize+7, SStarFrameType_API17);
+	uart_write(&frame,atParamSize+7+4);
 
 	{
 		int dely = 60000;
@@ -620,11 +623,25 @@ SStarAPI_SendingStatus SStarAPI_readAPI8B_status(const SStarAPIFrame * frame)
 	return api->status;
 }
 
+uint8_t SStarAPI_readAPI8B_frameID(const SStarAPIFrame * frame)
+{
+	const SStarAPI8B * api = SStarAPI_toAPI8B(frame);
+	if (api==0) return 0;
+	return api->frameID;
+}
+
 uint16_t SStarAPI_readAPI8C_source(const SStarAPIFrame * frame)
 {
 	const SStarAPI8C * api = SStarAPI_toAPI8C(frame);
 	if (api==0) return 0;
 	return api->sourceLsb | (api->sourceMsb<<8);
+}
+
+uint8_t SStarAPI_readAPI8C_frameID(const SStarAPIFrame * frame)
+{
+	const SStarAPI8C * api = SStarAPI_toAPI8C(frame);
+	if (api==0) return 0;
+	return api->frameID;
 }
 
 uint16_t SStarAPI_readAPI97_source(const SStarAPIFrame * frame)

@@ -142,7 +142,7 @@ typedef enum
 	SStarAT_AP,		//режим работы модема (Прозрачный/Пакетный/...)
 	SStarAT_DM,		//[0] - запрет приема широковещ., [1] - опорное для АЦП, [2] - ретрансляция, [4] - CCA, [5] - шифрование
 	SStarAT_KY,		//ключ шифрования (16 байт)
-	SStarAT_IO,		//запрос состояния входох/выходов
+	SStarAT_IO,		//запрос состояния входов/выходов
 	SStarAT_AI,		//Применение параметров немедленно
 //сетевые настройки
 	SStarAT_MY,		//адрес модуля MyID (2 байта)
@@ -158,7 +158,7 @@ typedef enum
 	SStarAT_PL,		//мощность передатчика
 //настройка режимов сна
 	SStarAT_SM,		//режим сна
-	SStarAT_SP,		//инстервал пробуждения
+	SStarAT_SP,		//интервал пробуждения
 	SStarAT_ST,		//длительность активного режима
 	SStarAT_SO,		//отправка пакета с данными GPIO при пробуждении по интервалу (бит 1), по внешнему сигналу WU (бит 2)
 	SStarAT_DS,		//задержка запуска ADC
@@ -389,13 +389,13 @@ const SStarAPI8C * SStarAPI_toAPI8C(const SStarAPIFrame * frame);
 const SStarAPI97 * SStarAPI_toAPI97(const SStarAPIFrame * frame);
 
 
-void SStarAPI_sendAPI10(SStarAPIFrame * frame, uint8_t frameID, uint16_t destination, uint8_t API10_options, const uint8_t * data, uint8_t size);
-void SStarAPI_sendAPI0F(SStarAPIFrame * frame, uint8_t frameID, uint16_t destination, const uint8_t * data, uint8_t size);
-void SStarAPI_sendAPI07_09(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize, SStarAPI07_09_options option);
-void SStarAPI_sendAPI07(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize);
-void SStarAPI_sendAPI08(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize);
-void SStarAPI_sendAPI09(SStarAPIFrame * frame, uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize);
-void SStarAPI_sendAPI17(SStarAPIFrame * frame, uint8_t frameID, uint16_t destination, uint8_t API17_options, const char * at, const uint8_t * atParam, uint8_t atParamSize);
+void SStarAPI_sendAPI10(uint8_t frameID, uint16_t destination, uint8_t API10_options, const uint8_t * data, uint8_t size);
+void SStarAPI_sendAPI0F(uint8_t frameID, uint16_t destination, const uint8_t * data, uint8_t size);
+void SStarAPI_sendAPI07_09(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize, SStarAPI07_09_options option);
+void SStarAPI_sendAPI07(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize);
+void SStarAPI_sendAPI08(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize);
+void SStarAPI_sendAPI09(uint8_t frameID, const char * at, const uint8_t * atParam, uint8_t atParamSize);
+void SStarAPI_sendAPI17(uint8_t frameID, uint16_t destination, uint8_t API17_options, const char * at, const uint8_t * atParam, uint8_t atParamSize);
 
 uint16_t SStarAPI_readAPI81838F_dataLen(const SStarAPIFrame * frame);
 const uint8_t * SStarAPI_readAPI81838F_data(const SStarAPIFrame * frame);
@@ -415,7 +415,11 @@ uint8_t SStarAPI_readAPI87_89_ATparamLen(const SStarAPIFrame * frame);
 SStarAPI_ModemStatus SStarAPI_readAPI8A(const SStarAPIFrame * frame);
 uint16_t SStarAPI_readAPI8B_destination(const SStarAPIFrame * frame);
 SStarAPI_SendingStatus SStarAPI_readAPI8B_status(const SStarAPIFrame * frame);
+uint8_t SStarAPI_readAPI8B_frameID(const SStarAPIFrame * frame);
+
 uint16_t SStarAPI_readAPI8C_source(const SStarAPIFrame * frame);
+uint8_t SStarAPI_readAPI8C_frameID(const SStarAPIFrame * frame);
+
 uint16_t SStarAPI_readAPI97_source(const SStarAPIFrame * frame);
 SStarAT_commands SStarAPI_readAPI97_ATcommand(const SStarAPIFrame * frame);
 uint8_t SStarAPI_readAPI97_ATparamLen(const SStarAPIFrame * frame);
